@@ -88,7 +88,7 @@ class DjangoDynamicResource(SimpleTestCase):
 
     def test_build_simple_url(self):
         """Build URL with no parameters."""
-        route = routing.DjangoRegexRoute('GET', Mock(), 'test', r'^$')
+        route = routing.DjangoDynamicResource('GET', Mock(), 'test', r'^$')
         with patch('aiodjango.routing.reverse') as mock_reverse:
             mock_reverse.return_value = '/test/'
             url = route.url()
