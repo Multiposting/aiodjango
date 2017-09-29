@@ -6,7 +6,7 @@ from django.conf.urls import url
 from django.http import HttpResponse
 from django.test import override_settings, SimpleTestCase
 
-from aiohttp.web import Response
+from aiohttp.web import Response, Application
 
 from .. import routing
 
@@ -22,12 +22,14 @@ class GetRoutesTestCase(SimpleTestCase):
 
     def test_use_root_conf(self):
         """If patterns aren't given then they are discovered from the ROOT_URLCONF."""
-        routes = routing.get_aio_routes()
+        router = Application().router
+        routes = routing.init_routes(router)
         self.assertEqual(len(routes), 1)
 
     def test_no_patterns(self):
         """Handle no patterns given."""
-        routes = routing.get_aio_routes(patterns=[])
+        router = Application().router
+        routes = routing.init_routes(router, patterns=[])
         self.assertEqual(len(routes), 0)
 
     def test_no_coroutines(self):
@@ -35,7 +37,8 @@ class GetRoutesTestCase(SimpleTestCase):
         patterns = (
             url(r'^$', lambda x: HttpResponse('Ok'), name='example'),
         )
-        routes = routing.get_aio_routes(patterns=patterns)
+        router = Application().router
+        routes = routing.init_routes(router, patterns=patterns)
         self.assertEqual(len(routes), 0)
 
     def test_simple_regex(self):
@@ -43,22 +46,27 @@ class GetRoutesTestCase(SimpleTestCase):
         patterns = (
             url(r'^/$', example, name='example'),
         )
-        routes = routing.get_aio_routes(patterns=patterns)
+        router = Application().router
+        routes = routing.init_routes(router, patterns=patterns)
         self.assertEqual(len(routes), 1)
-        route = routes.pop()
-        self.assertIsNotNone(route.match('/'))
-        self.assertIsNone(route.match('/foo/'))
+        route = routes._routes.pop()
+        assert route.resource._match('/') is not None
+        self.assertFalse(route.resource._match('/foo/'))
+
 
     def test_regex_grouping(self):
         """Handle regex with named variable groups."""
         patterns = (
             url(r'^/foo/(?P<foo>[0-9]+)/$', example, name='example'),
         )
-        routes = routing.get_aio_routes(patterns=patterns)
+
+        router = Application().router
+        routes = routing.init_routes(router, patterns=patterns)
         self.assertEqual(len(routes), 1)
-        route = routes.pop()
-        self.assertIsNotNone(route.match('/foo/123/'))
-        self.assertIsNone(route.match('/foo/'))
+        route = routes._routes.pop()
+        assert route.resource._match('/foo/123/') is not None
+        assert route.resource._match('/foo/') is None
+
 
     def test_leading_slash(self):
         """aiohttp expects a leading slash so it is automatically added."""
@@ -66,24 +74,17 @@ class GetRoutesTestCase(SimpleTestCase):
             url(r'^$', example, name='example-no-slash'),
             url(r'^foo/(?P<foo>[0-9]+)/$', example, name='variable-no-slash'),
         )
-        routes = routing.get_aio_routes(patterns=patterns)
+        router = Application().router
+        routes = routing.init_routes(router, patterns=patterns)
         self.assertEqual(len(routes), 2)
-        route = routes[0]
-        self.assertIsNotNone(route.match('/'))
-        route = routes[1]
-        self.assertIsNotNone(route.match('/foo/123/'))
+        route = routes._routes[0]
+        self.assertIsNotNone(route.resource._match('/'))
+        route = routes._routes[1]
+        self.assertIsNotNone(route.resource._match('/foo/123/'))
 
 
-class DjangoRouteTestCase(SimpleTestCase):
+class DjangoDynamicResource(SimpleTestCase):
     """Wrapping aiohttp routing through Django's URL routing."""
-
-    def test_repr(self):
-        """Print out sane string representation."""
-        handler = Mock()
-        handler.__repr__ = Mock(return_value='callback')
-        route = routing.DjangoRegexRoute('GET', handler, 'test', r'^$')
-        self.assertEqual(
-            '{!r}'.format(route), '<DjangoRegexRoute \'test\' [GET] -> callback')
 
     def test_build_simple_url(self):
         """Build URL with no parameters."""

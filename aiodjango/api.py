@@ -4,7 +4,7 @@ from django.core.wsgi import get_wsgi_application
 from aiohttp import web
 from aiohttp_wsgi import WSGIHandler
 
-from .routing import get_aio_routes
+from .routing import init_routes
 
 
 def get_aio_application(wsgi=None, include_static=False):
@@ -12,9 +12,7 @@ def get_aio_application(wsgi=None, include_static=False):
 
     handler = WSGIHandler(wsgi or get_wsgi_application())
     app = web.Application()
-    for route in get_aio_routes():
-        app.router.register_route(route)
-    if include_static:
-        app.router.add_static(settings.STATIC_URL, settings.STATIC_ROOT, name='static')
+    init_routes(app.router)
+
     app.router.add_route("*", "/{path_info:.*}", handler.handle_request, name='wsgi-app')
     return app
