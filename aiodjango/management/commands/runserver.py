@@ -24,7 +24,6 @@ class Command(BaseCommand):
         # If an exception was silenced in ManagementUtility.execute in order
         # to be raised in the child process, raise it now.
         autoreload.raise_last_exception()
-
         shutdown_message = options.get('shutdown_message', '')
         quit_command = 'CTRL-BREAK' if sys.platform == 'win32' else 'CONTROL-C'
 

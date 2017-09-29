@@ -67,13 +67,3 @@ class GetApplicationTestCase(SimpleTestCase):
         app = api.get_aio_application()
         match = yield from app.router.resolve(request)
         self.assertEqual(match.route.name, 'aiohttp-ok')
-
-    @async_test
-    def test_static_route(self):
-        """Optionally add the routing of static files."""
-        with self.settings(STATIC_URL='/static/', STATIC_ROOT=tempfile.gettempdir()):
-            app = api.get_aio_application(include_static=True)
-            self.assertEqual(len(app.router.routes()), 3)
-            request = Mock(method='GET', raw_path='/static/')
-            match = yield from app.router.resolve(request)
-            self.assertEqual(match.route.name, 'static')
