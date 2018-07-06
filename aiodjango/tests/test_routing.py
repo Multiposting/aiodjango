@@ -7,6 +7,7 @@ from django.http import HttpResponse
 from django.test import override_settings, SimpleTestCase
 
 from aiohttp.web import Response, Application
+from yarl import URL
 
 from .. import routing
 
@@ -88,27 +89,18 @@ class DjangoDynamicResource(SimpleTestCase):
 
     def test_build_simple_url(self):
         """Build URL with no parameters."""
-        route = routing.DjangoDynamicResource('GET', Mock(), 'test', r'^$')
+        resource = routing.DjangoDynamicResource( r'^$', name='test')
         with patch('aiodjango.routing.reverse') as mock_reverse:
             mock_reverse.return_value = '/test/'
-            url = route.url()
-            self.assertEqual(url, '/test/')
+            url = resource.url_for()
+            self.assertEqual(url, URL('/test/'))
             mock_reverse.assert_called_with('test', kwargs={})
 
     def test_build_dynamic_url(self):
         """Build URL with dynamic path parameters."""
-        route = routing.DjangoRegexRoute('GET', Mock(), 'test', r'^(?P<name>\w+)$')
+        resource = routing.DjangoDynamicResource(r'^(?P<name>\w+)$', name='test', )
         with patch('aiodjango.routing.reverse') as mock_reverse:
             mock_reverse.return_value = '/foo/'
-            url = route.url(name='foo')
-            self.assertEqual(url, '/foo/')
+            url = resource.url_for(name='foo')
+            self.assertEqual(url, URL('/foo/'))
             mock_reverse.assert_called_with('test', kwargs={'name': 'foo'})
-
-    def test_build_with_query(self):
-        """Build URL with query arguments."""
-        route = routing.DjangoRegexRoute('GET', Mock(), 'test', r'^$')
-        with patch('aiodjango.routing.reverse') as mock_reverse:
-            mock_reverse.return_value = '/test/'
-            url = route.url(query={'foo': 'bar'})
-            self.assertEqual(url, '/test/?foo=bar')
-            mock_reverse.assert_called_with('test', kwargs={})

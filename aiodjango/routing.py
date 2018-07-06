@@ -11,19 +11,20 @@ from django.core.urlresolvers import reverse
 
 from aiohttp.web import DynamicResource
 
-PATH_SEP = re.escape('/')
+PATH_SEP = '/'
 
 class DjangoDynamicResource(DynamicResource):
 
     def __init__(self, regex, *, name=None):
         if not regex.lstrip('^').startswith(PATH_SEP):
             regex = PATH_SEP + regex.lstrip('^').lstrip('/')
-        pattern = re.compile(regex)
-        super().__init__(pattern, '/', name=name)
+        self._pattern = re.compile(regex)
+        self._formatter = '/'
+        super(DynamicResource, self).__init__(name=name)
 
     def url_for(self, **kwargs):
-        url = reverse(self.name, kwargs=kwargs)
-        return URL(url)
+        return URL(reverse(self.name, kwargs=kwargs))
+
 
 def init_routes(app_router, patterns=None):
     """Walk the URL patterns to find any coroutine views."""
