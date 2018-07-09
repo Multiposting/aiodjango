@@ -1,6 +1,7 @@
 import tempfile
 
 from unittest.mock import patch, Mock
+from yarl import URL
 
 from django.core.urlresolvers import reverse
 from django.test import override_settings, SimpleTestCase
@@ -45,7 +46,7 @@ class GetApplicationTestCase(SimpleTestCase):
     def test_resolve_wsgi(self):
         """Routing existing WSGI views should continue to work."""
         path = reverse('wsgi-ok')
-        request = Mock(method='GET', raw_path=path)
+        request = Mock(method='GET', rel_url=URL(path))
         app = api.get_aio_application()
         match = yield from app.router.resolve(request)
         self.assertEqual(match.route.name, 'wsgi-app')
@@ -54,7 +55,7 @@ class GetApplicationTestCase(SimpleTestCase):
     def test_resolve_wsgi_fallback(self):
         """Any route not handled by a coroutine will fall back to the WSGI app."""
         path = '/this-path-does-not-exist/'
-        request = Mock(method='GET', raw_path=path)
+        request = Mock(method='GET', rel_url=URL(path))
         app = api.get_aio_application()
         match = yield from app.router.resolve(request)
         self.assertEqual(match.route.name, 'wsgi-app')
@@ -63,7 +64,7 @@ class GetApplicationTestCase(SimpleTestCase):
     def test_coroutine_resolve_simple(self):
         """Simple path resolution should continue to work for added coroutines."""
         path = reverse('aiohttp-ok')
-        request = Mock(method='GET', raw_path=path)
+        request = Mock(method='GET', rel_url=URL(path))
         app = api.get_aio_application()
         match = yield from app.router.resolve(request)
         self.assertEqual(match.route.name, 'aiohttp-ok')

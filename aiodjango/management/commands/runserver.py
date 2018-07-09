@@ -80,9 +80,9 @@ class Command(BaseCommand):
                 self.stdout.write(shutdown_message)
             sys.exit(0)
         finally:
-            loop.run_until_complete(handler.finish_connections(1.0))
+            loop.run_until_complete(handler.shutdown())
             if server is not None:
                 server.close()
                 loop.run_until_complete(server.wait_closed())
-            loop.run_until_complete(app.finish())
+            loop.run_until_complete(app.cleanup())
         loop.close()

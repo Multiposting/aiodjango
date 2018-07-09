@@ -3,6 +3,7 @@ import errno
 from io import StringIO
 from unittest.mock import patch
 
+from django.core.management import call_command
 from django.test import TestCase
 
 from aiodjango.management.commands.runserver import Command
@@ -26,23 +27,23 @@ class RunserverTestCase(TestCase):
     def test_default_options(self):
         """Deifault options for running the server."""
         with patch.object(self.cmd, 'run'):
-            self.cmd.handle()
+            call_command(self.cmd)
         self.assert_option('addr', '127.0.0.1')
         self.assert_option('port', '8000')
-        self.assert_option('use_ipv6', None)
+        self.assert_option('use_ipv6', False)
 
     def test_set_ip(self):
         """Run server on another IP address/port."""
         with patch.object(self.cmd, 'run'):
-            self.cmd.handle(addrport='1.2.3.4:5000')
+            call_command(self.cmd, addrport='1.2.3.4:5000')
         self.assert_option('addr', '1.2.3.4')
         self.assert_option('port', '5000')
-        self.assert_option('use_ipv6', None)
+        self.assert_option('use_ipv6', False)
 
     @patch('asyncio.get_event_loop')
     def test_run(self, mock_loop):
         """Running the server should kick off the aiohttp app in the event loop."""
-        self.cmd.handle()
+        call_command(self.cmd, use_reloader=False)
         mock_loop.assert_called_with()
         mock_loop.return_value.run_forever.assert_called_with()
 
@@ -55,7 +56,7 @@ class RunserverTestCase(TestCase):
         self.cmd.addr = '127.0.0.1'
         self.cmd.port = '8000'
         self.cmd._raw_ipv6 = False
-        self.cmd.inner_run(use_reloader=True)
+        self.cmd.inner_run(use_reloader=True, use_static_handler=False, insecure_serving=True)
         mock_loop.assert_called_with()
         mock_set_loop.assert_called_with(mock_loop.return_value)
         mock_loop.return_value.run_forever.assert_called_with()
@@ -65,7 +66,7 @@ class RunserverTestCase(TestCase):
         """Handle socket errors when createing the server."""
         mock_loop.return_value.create_server.side_effect = OSError('OS is broken')
         with patch('os._exit') as mock_exit:
-            self.cmd.handle()
+            call_command(self.cmd, use_reloader=False)
             mock_exit.assert_called_with(1)
         self.assert_stderr('OS is broken')
 
@@ -82,7 +83,7 @@ class RunserverTestCase(TestCase):
             error.errno = number
             mock_loop.return_value.create_server.side_effect = error
             with patch('os._exit') as mock_exit:
-                self.cmd.handle()
+                call_command(self.cmd, use_reloader=False)
                 mock_exit.assert_called_with(1)
             self.assert_stderr(message)
 
@@ -91,4 +92,4 @@ class RunserverTestCase(TestCase):
         """User should be able to stop the server with a KeyboardInterrupt."""
         mock_loop.return_value.run_forever.side_effect = KeyboardInterrupt
         with self.assertRaises(SystemExit):
-            self.cmd.handle()
+            call_command(self.cmd, use_reloader=False)
