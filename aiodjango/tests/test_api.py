@@ -1,5 +1,3 @@
-import tempfile
-
 from unittest.mock import patch, Mock
 from yarl import URL
 

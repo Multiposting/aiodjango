@@ -13,6 +13,7 @@ from aiohttp.web import DynamicResource
 
 PATH_SEP = '/'
 
+
 class DjangoDynamicResource(DynamicResource):
 
     def __init__(self, regex, *, name=None):

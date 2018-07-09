@@ -30,7 +30,9 @@ def get_package_meta():
         '__doc__': ast.get_docstring(parsed),
     }
 
+
 _meta = get_package_meta()
+
 
 setup(
     name='aiodjango',

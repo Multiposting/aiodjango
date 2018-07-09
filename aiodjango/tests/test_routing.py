@@ -1,6 +1,6 @@
 import asyncio
 
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 from django.conf.urls import url
 from django.http import HttpResponse
@@ -54,7 +54,6 @@ class GetRoutesTestCase(SimpleTestCase):
         assert route.resource._match('/') is not None
         self.assertFalse(route.resource._match('/foo/'))
 
-
     def test_regex_grouping(self):
         """Handle regex with named variable groups."""
         patterns = (
@@ -67,7 +66,6 @@ class GetRoutesTestCase(SimpleTestCase):
         route = routes._routes.pop()
         assert route.resource._match('/foo/123/') is not None
         assert route.resource._match('/foo/') is None
-
 
     def test_leading_slash(self):
         """aiohttp expects a leading slash so it is automatically added."""
@@ -89,7 +87,7 @@ class DjangoDynamicResource(SimpleTestCase):
 
     def test_build_simple_url(self):
         """Build URL with no parameters."""
-        resource = routing.DjangoDynamicResource( r'^$', name='test')
+        resource = routing.DjangoDynamicResource(r'^$', name='test')
         with patch('aiodjango.routing.reverse') as mock_reverse:
             mock_reverse.return_value = '/test/'
             url = resource.url_for()

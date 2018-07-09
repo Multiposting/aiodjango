@@ -4,6 +4,7 @@ import sys
 
 import django
 from django.conf import settings
+from django.test.utils import get_runner
 
 
 if not settings.configured:
@@ -31,7 +32,7 @@ if not settings.configured:
             'django.contrib.messages.middleware.MessageMiddleware',
             'django.middleware.clickjacking.XFrameOptionsMiddleware',
         ),
-        TEMPLATES = [
+        TEMPLATES=[
             {
                 'BACKEND': 'django.template.backends.django.DjangoTemplates',
                 'DIRS': [],
@@ -50,8 +51,6 @@ if not settings.configured:
         ROOT_URLCONF='aiodjango.tests.urls',
         USE_TZ=True,
     )
-
-from django.test.utils import get_runner
 
 
 def runtests():
