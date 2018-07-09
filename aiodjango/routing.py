@@ -7,7 +7,7 @@ from yarl import URL
 
 from django.conf import settings
 from django.contrib.admindocs.views import extract_views_from_urlpatterns
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from aiohttp.web import DynamicResource
 

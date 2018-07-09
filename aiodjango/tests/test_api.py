@@ -1,7 +1,7 @@
 from unittest.mock import patch, Mock
 from yarl import URL
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.test import override_settings, SimpleTestCase
 
 from .. import api
