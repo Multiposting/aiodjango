@@ -3,16 +3,19 @@ sudo: false
 language: python
 
 python:
-  - '3.4'
+  - '3.5'
+  - '3.6'
+  - '3.7-dev'
 
-env:
-  - TOXENV=lint
-  - TOXENV=docs
-  - TOXENV=py34-django18
-  - TOXENV=py34-django19
+matrix:
+  include:
+    - python: '3.7-dev'
+      env: TOXENV="lint"
+    - python: '3.7-dev'
+      env: TOXENV="docs"
 
 install:
-  - pip install tox pip wheel codecov -U
+  - pip install tox tox-travis pip wheel codecov -U
 
 script:
   - tox
