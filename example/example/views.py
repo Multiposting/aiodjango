@@ -3,7 +3,7 @@ import asyncio
 from django.shortcuts import render
 
 import aioamqp
-from aiohttp.web import MsgType, WebSocketResponse
+from aiohttp.web import WSMsgType, WebSocketResponse
 
 
 def index(request):
@@ -19,12 +19,6 @@ def socket(request):
         transport, protocol = yield from aioamqp.connect()
         request.app['amqp'] = protocol
 
-        @asyncio.coroutine
-        def cleanup(app):
-            yield from protocol.close(timeout=1.0)
-            transport.close()
-        request.app.register_on_finish(cleanup)
-
     amqp = request.app['amqp']
     channel = yield from amqp.channel()
     yield from channel.exchange_declare(
@@ -36,7 +30,7 @@ def socket(request):
     @asyncio.coroutine
     def message(channel, body, envelope, properties):
         if not resp.closed:
-            resp.send_str(body.decode('utf-8'))
+            yield from resp.send_str(body.decode('utf-8'))
         yield from channel.basic_client_ack(envelope.delivery_tag)
 
     yield from channel.basic_consume(message, queue_name=result['queue'])
@@ -44,7 +38,7 @@ def socket(request):
     # Broadcast messages to the queue
     while True:
         msg = yield from resp.receive()
-        if msg.tp == MsgType.text:
+        if msg.type == WSMsgType.TEXT:
             yield from channel.publish(msg.data, exchange_name='demo-room', routing_key='')
         else:
             break
