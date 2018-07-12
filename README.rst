@@ -31,15 +31,30 @@ which runs the Django WSGI app in a thread-pool to minimize blocking the async
 portions of the app.
 
 
+Compatibility Matrix
+--------------------
+
+Below is the matrix of combinations that have been tested. Python 3.5+ is necessary but aiodjango
+may also work with other Django versions.
+
++-------------+--------+--------+--------+
+|             | Py 3.5 | Py 3.6 | Py 3.7 |
++=============+========+========+========+
+| Django 1.11 |  Yes   |  Yes   |        |
++-------------+--------+--------+--------+
+| Django 2.0  |  Yes   |  Yes   |  Yes   |
++-------------+--------+--------+--------+
+
+
 Running the Demo
 ----------------
 
-The example project requires Python 3.4+ to run. You should create a virtualenv
+The example project requires Python 3.5+ to run. You should create a virtualenv
 to install the necessary requirements::
 
     $ git clone https://github.com/mlavin/aiodjango.git
     $ cd aiodjango/
-    $ mkvirtualenv aiodjango -p `which python3.4`
+    $ mkvirtualenv aiodjango -p `which python3.5`
     (aiodjango) $ add2virtualenv .
     (aiodjango) $ cd example
     (aiodjango) $ pip install -r requirements.txt
